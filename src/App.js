@@ -5,14 +5,15 @@
 import { collection, addDoc, Timestamp, getDocs, deleteDoc, doc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "./firebase";
+import React, { useState } from 'react';
+import jsPDF from 'jspdf';
+import emailjs from "emailjs-com";
 addDoc(collection(db, "test"), { createdAt: Timestamp.now() })
   .then(() => console.log("🔥 Firestore works!"))
   .catch(err => console.error("Firestore error:", err));
-import React, { useState } from 'react';
-import jsPDF from 'jspdf';
-
 export default function App() {
   const [screen, setScreen] = useState('home');
+  const [quotesList, setQuotesList] = useState([]);
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -27,7 +28,6 @@ export default function App() {
   const [quote, setQuote] = useState(null);
 const [imageURL, setImageURL] = useState(null);
 const [uploading, setUploading] = useState(false);
-const [quotesList, setQuotesList] = useState([]);
   const classyBlue = '#102A71';
   const classyNavy = '#001840';
   const classyYellow = '#F5C400';
@@ -93,7 +93,8 @@ const handleSaveQuote = async () => {
       trips: form.trips,
       total: quote,
       createdAt: Timestamp.now(),
-      imageURL: imageURL || null
+      imageURL: imageURL || null,
+      notes: form.notes || "",
     });
     alert("✅ Quote saved to the cloud!");
     setImageURL(null);
@@ -143,6 +144,8 @@ const handleSaveQuote = async () => {
     doc.line(15, 193, 195, 193);
     doc.setFontSize(10);
     doc.setTextColor(100);
+    doc.text('Notes:', 15, 175);
+doc.text(form.notes || '—', 20, 182, { maxWidth: 170 });
     doc.text('Thank you for choosing Classy Junk Removal – Stay Classy!', 15, 205);
     doc.save(`ClassyQuote_${form.name || 'Customer'}.pdf`);
   };
@@ -206,6 +209,13 @@ const loadQuotes = async () => {
               <Field label="Phone" name="phone" value={form.phone} onChange={handleChange} placeholder="706-xxx-xxxx" />
               <Field label="Email" name="email" value={form.email} onChange={handleChange} placeholder="name@example.com" />
               <Field label="Address" name="address" value={form.address} onChange={handleChange} placeholder="Street, City, ZIP" />
+              <Field
+  label="Employee Notes"
+  name="notes"
+  value={form.notes || ""}
+  onChange={handleChange}
+  placeholder="Example: Customer requested curbside pickup only"
+/>
             </div>
           </Card>
 
@@ -294,20 +304,6 @@ const loadQuotes = async () => {
             marginBottom: 12
           }}>Past Quotes</h2>
           <Card>
-            <button
-  onClick={() => handleDeleteQuote(quote.id)}
-  style={{
-    background: 'transparent',
-    border: '1px solid #ff4d4f',
-    color: '#ff4d4f',
-    padding: '8px 12px',
-    borderRadius: 8,
-    fontWeight: 600,
-    width: '100%'
-  }}
->
-  🗑 Delete
-</button>
             {quotesList.length === 0 ? (
   <p style={{ color: '#667085' }}>No quotes found yet.</p>
 ) : (
@@ -401,16 +397,3 @@ function Button({ children, onClick, variant = 'primary', full }) {
   const style = { ...styles.base, ...(styles[variant] || styles.primary) };
   return <button onClick={onClick} style={style}>{children}</button>;
 }
-const handleDeleteQuote = async (id) => {
-  const confirmDelete = window.confirm("Are you sure you want to delete this quote?");
-  if (!confirmDelete) return;
-
-  try {
-    await deleteDoc(doc(db, "quotes", id));
-    alert("🗑️ Quote deleted successfully!");
-    setQuotesList(quotesList.filter((quote) => quote.id !== id)); // instantly update the UI
-  } catch (error) {
-    console.error("Error deleting quote:", error);
-    alert("❌ Error deleting quote. Check console for details.");
-  }
-};
