@@ -1,13 +1,11 @@
-// Import the functions you need from the SDKs you need
+// ✅ Clean Firebase setup file
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// --- Replace with your Firebase project credentials ---
 const firebaseConfig = {
-  apiKey: "AIzaSyAfHkboU3avX2H0z9jjkKGHtT8Ur4XEj6E",
+    apiKey: "AIzaSyAfHkboU3avX2H0z9jjkKGHtT8Ur4XEj6E",
   authDomain: "classy-sales-c8888.firebaseapp.com",
   projectId: "classy-sales-c8888",
   storageBucket: "classy-sales-c8888.firebasestorage.app",
@@ -16,6 +14,13 @@ const firebaseConfig = {
   measurementId: "G-K3ZXQ05X0L"
 };
 
-// Initialize Firebase
+// Initialize Firebase once
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+
+// Initialize Firestore + Storage
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+// Export both for App.js
+export { db, storage };
+
